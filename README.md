@@ -1,110 +1,301 @@
-# MCP Atlassian
+# Workday MCP Atlassian
 
-![PyPI Version](https://img.shields.io/pypi/v/mcp-atlassian)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/mcp-atlassian)
-![PePy - Total Downloads](https://static.pepy.tech/personalized-badge/mcp-atlassian?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Total%20Downloads)
-[![Run Tests](https://github.com/sooperset/mcp-atlassian/actions/workflows/tests.yml/badge.svg)](https://github.com/sooperset/mcp-atlassian/actions/workflows/tests.yml)
-![License](https://img.shields.io/github/license/sooperset/mcp-atlassian)
-[![Docs](https://img.shields.io/badge/docs-mintlify-blue)](https://mcp-atlassian.soomiles.com)
+> **Internal Workday Fork** of [sooperset/mcp-atlassian](https://github.com/sooperset/mcp-atlassian)
 
-Model Context Protocol (MCP) server for Atlassian products (Confluence and Jira). Supports both Cloud and Server/Data Center deployments.
+Model Context Protocol (MCP) server for Atlassian products (Confluence and Jira). This integration supports both Confluence & Jira Cloud and Server/Data Center deployments.
 
-https://github.com/user-attachments/assets/35303504-14c6-4ae4-913b-7c25ea511c3e
+## 📦 Docker Image
 
-<details>
-<summary>Confluence Demo</summary>
+```
+docker-dev-artifactory.workday.com/docker-public-repos/workday-mcp-atlassian:latest
+```
 
-https://github.com/user-attachments/assets/7fe9c488-ad0c-4876-9b54-120b666bb785
+## Example Usage
 
-</details>
+Ask your AI assistant to:
 
-## Quick Start
+- **📝 Automatic Jira Updates** - "Update Jira from our meeting notes"
+- **🔍 AI-Powered Confluence Search** - "Find our OKR guide in Confluence and summarize it"
+- **🐛 Smart Jira Issue Filtering** - "Show me urgent bugs in PROJ project from last week"
+- **📄 Content Creation & Management** - "Create a tech design doc for XYZ feature"
 
-### 1. Get Your API Token
+### Compatibility
 
-Go to https://id.atlassian.com/manage-profile/security/api-tokens and create a token.
+| Product        | Deployment Type    | Support Status              |
+|----------------|--------------------|-----------------------------|
+| **Confluence** | Cloud              | ✅ Fully supported           |
+| **Confluence** | Server/Data Center | ✅ Supported (version 6.0+)  |
+| **Jira**       | Cloud              | ✅ Fully supported           |
+| **Jira**       | Server/Data Center | ✅ Supported (version 8.14+) |
 
-> For Server/Data Center, use a Personal Access Token instead. See [Authentication](https://mcp-atlassian.soomiles.com/docs/authentication).
+## Quick Start Guide
 
-### 2. Configure Your IDE
+### 🔐 1. Authentication Setup
 
-Add to your Claude Desktop or Cursor MCP configuration:
+MCP Atlassian supports three authentication methods:
+
+#### A. API Token Authentication (Cloud) - **Recommended**
+
+1. Go to https://id.atlassian.com/manage-profile/security/api-tokens
+2. Click **Create API token**, name it
+3. Copy the token immediately
+
+#### B. Personal Access Token (Server/Data Center)
+
+1. Go to your profile (avatar) → **Profile** → **Personal Access Tokens**
+2. Click **Create token**, name it, set expiry
+3. Copy the token immediately
+
+### 📦 2. Installation
+
+#### Pull from Workday Artifactory
+
+```bash
+# Login to Artifactory (if not already logged in)
+docker login docker-dev-artifactory.workday.com
+
+# Pull the image
+docker pull docker-dev-artifactory.workday.com/docker-public-repos/workday-mcp-atlassian:latest
+```
+
+## 🛠️ IDE Integration (Cursor)
+
+### Step 1: Open Cursor MCP Settings
+
+1. Open **Cursor Settings** (⌘ + , on Mac)
+2. Navigate to **Features** → **MCP**
+3. Click **+ Add new global MCP server**
+
+Or directly edit: `~/.cursor/mcp.json`
+
+### Step 2: Add Configuration
+
+#### For Atlassian Cloud (API Token):
 
 ```json
 {
   "mcpServers": {
     "mcp-atlassian": {
-      "command": "uvx",
-      "args": ["mcp-atlassian"],
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-e", "JIRA_URL",
+        "-e", "JIRA_USERNAME",
+        "-e", "JIRA_API_TOKEN",
+        "-e", "CONFLUENCE_URL",
+        "-e", "CONFLUENCE_USERNAME",
+        "-e", "CONFLUENCE_API_TOKEN",
+        "docker-dev-artifactory.workday.com/docker-public-repos/workday-mcp-atlassian:latest"
+      ],
       "env": {
         "JIRA_URL": "https://your-company.atlassian.net",
-        "JIRA_USERNAME": "your.email@company.com",
-        "JIRA_API_TOKEN": "your_api_token",
+        "JIRA_USERNAME": "your.email@workday.com",
+        "JIRA_API_TOKEN": "your_jira_api_token",
         "CONFLUENCE_URL": "https://your-company.atlassian.net/wiki",
-        "CONFLUENCE_USERNAME": "your.email@company.com",
-        "CONFLUENCE_API_TOKEN": "your_api_token"
+        "CONFLUENCE_USERNAME": "your.email@workday.com",
+        "CONFLUENCE_API_TOKEN": "your_confluence_api_token"
       }
     }
   }
 }
 ```
 
-> **Server/Data Center users**: Use `JIRA_PERSONAL_TOKEN` instead of `JIRA_USERNAME` + `JIRA_API_TOKEN`. See [Authentication](https://mcp-atlassian.soomiles.com/docs/authentication) for details.
+#### For Server/Data Center (Personal Access Token):
 
-### 3. Start Using
+```json
+{
+  "mcpServers": {
+    "mcp-atlassian": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-e", "JIRA_URL",
+        "-e", "JIRA_PERSONAL_TOKEN",
+        "-e", "CONFLUENCE_URL",
+        "-e", "CONFLUENCE_PERSONAL_TOKEN",
+        "docker-dev-artifactory.workday.com/docker-public-repos/workday-mcp-atlassian:latest"
+      ],
+      "env": {
+        "JIRA_URL": "https://jira.workday.com",
+        "JIRA_PERSONAL_TOKEN": "your_jira_pat",
+        "CONFLUENCE_URL": "https://confluence.workday.com",
+        "CONFLUENCE_PERSONAL_TOKEN": "your_confluence_pat"
+      }
+    }
+  }
+}
+```
 
-Ask your AI assistant to:
-- **"Find issues assigned to me in PROJ project"**
-- **"Search Confluence for onboarding docs"**
-- **"Create a bug ticket for the login issue"**
-- **"Update the status of PROJ-123 to Done"**
+### Step 3: Restart Cursor
 
-## Documentation
+After saving the configuration, restart Cursor for the MCP server to load.
 
-Full documentation is available at **[mcp-atlassian.soomiles.com](https://mcp-atlassian.soomiles.com)**.
+## ⚙️ Configuration Options
 
-Documentation is also available in [llms.txt format](https://llmstxt.org/), which LLMs can consume easily:
-- [`llms.txt`](https://mcp-atlassian.soomiles.com/llms.txt) — documentation sitemap
-- [`llms-full.txt`](https://mcp-atlassian.soomiles.com/llms-full.txt) — complete documentation
+### Common Environment Variables
 
-| Topic | Description |
-|-------|-------------|
-| [Installation](https://mcp-atlassian.soomiles.com/docs/installation) | uvx, Docker, pip, from source |
-| [Authentication](https://mcp-atlassian.soomiles.com/docs/authentication) | API tokens, PAT, OAuth 2.0 |
-| [Configuration](https://mcp-atlassian.soomiles.com/docs/configuration) | IDE setup, environment variables |
-| [HTTP Transport](https://mcp-atlassian.soomiles.com/docs/http-transport) | SSE, streamable-http, multi-user |
-| [Tools Reference](https://mcp-atlassian.soomiles.com/docs/tools-reference) | All Jira & Confluence tools |
-| [Troubleshooting](https://mcp-atlassian.soomiles.com/docs/troubleshooting) | Common issues & debugging |
+| Variable | Description |
+|----------|-------------|
+| `JIRA_URL` | Jira instance URL |
+| `JIRA_USERNAME` | Jira username/email (Cloud) |
+| `JIRA_API_TOKEN` | Jira API token (Cloud) |
+| `JIRA_PERSONAL_TOKEN` | Jira PAT (Server/DC) |
+| `CONFLUENCE_URL` | Confluence instance URL |
+| `CONFLUENCE_USERNAME` | Confluence username/email (Cloud) |
+| `CONFLUENCE_API_TOKEN` | Confluence API token (Cloud) |
+| `CONFLUENCE_PERSONAL_TOKEN` | Confluence PAT (Server/DC) |
+| `JIRA_PROJECTS_FILTER` | Comma-separated project keys to filter |
+| `CONFLUENCE_SPACES_FILTER` | Comma-separated space keys to filter |
+| `READ_ONLY_MODE` | Set to "true" to disable write operations |
+| `JIRA_SSL_VERIFY` | Set to "false" for self-signed certs |
+| `CONFLUENCE_SSL_VERIFY` | Set to "false" for self-signed certs |
 
-## Compatibility
+### Read-Only Mode
 
-| Product | Deployment | Support |
-|---------|------------|---------|
-| Confluence | Cloud | Fully supported |
-| Confluence | Server/Data Center | Supported (v6.0+) |
-| Jira | Cloud | Fully supported |
-| Jira | Server/Data Center | Supported (v8.14+) |
+For safer production use, enable read-only mode:
 
-## Key Tools
+```json
+"args": [
+  "run", "--rm", "-i",
+  "-e", "JIRA_URL",
+  "-e", "JIRA_PERSONAL_TOKEN",
+  "-e", "READ_ONLY_MODE",
+  "docker-dev-artifactory.workday.com/docker-public-repos/workday-mcp-atlassian:latest"
+],
+"env": {
+  "READ_ONLY_MODE": "true",
+  ...
+}
+```
 
-| Jira | Confluence |
-|------|------------|
-| `jira_search` - Search with JQL | `confluence_search` - Search with CQL |
-| `jira_get_issue` - Get issue details | `confluence_get_page` - Get page content |
-| `jira_create_issue` - Create issues | `confluence_create_page` - Create pages |
-| `jira_update_issue` - Update issues | `confluence_update_page` - Update pages |
-| `jira_transition_issue` - Change status | `confluence_add_comment` - Add comments |
+### Filter to Specific Projects/Spaces
 
-**72 tools total** — See [Tools Reference](https://mcp-atlassian.soomiles.com/docs/tools-reference) for the complete list.
+```json
+"env": {
+  "JIRA_PROJECTS_FILTER": "PROJ1,PROJ2",
+  "CONFLUENCE_SPACES_FILTER": "TEAM,DOCS",
+  ...
+}
+```
 
-## Security
+### Skip SSL Verification (for self-signed certs)
 
-Never share API tokens. Keep `.env` files secure. See [SECURITY.md](SECURITY.md).
+```json
+"env": {
+  "JIRA_SSL_VERIFY": "false",
+  "CONFLUENCE_SSL_VERIFY": "false",
+  ...
+}
+```
 
-## Contributing
+## 🔧 Tools
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup.
+### Jira Tools
 
-## License
+| Tool | Description |
+|------|-------------|
+| `jira_get_issue` | Get details of a specific issue |
+| `jira_search` | Search issues using JQL |
+| `jira_create_issue` | Create a new issue |
+| `jira_update_issue` | Update an existing issue |
+| `jira_transition_issue` | Transition an issue to a new status |
+| `jira_add_comment` | Add a comment to an issue |
+| `jira_get_all_projects` | List all accessible projects |
+| `jira_get_project_issues` | Get issues for a project |
+| `jira_get_transitions` | Get available status transitions |
+| `jira_get_agile_boards` | Get agile boards |
+| `jira_get_sprints_from_board` | Get sprints from a board |
+| `jira_get_sprint_issues` | Get issues in a sprint |
 
-MIT - See [LICENSE](LICENSE). Not an official Atlassian product.
+### Confluence Tools
+
+| Tool | Description |
+|------|-------------|
+| `confluence_search` | Search Confluence content using CQL |
+| `confluence_get_page` | Get content of a specific page |
+| `confluence_create_page` | Create a new page |
+| `confluence_update_page` | Update an existing page |
+| `confluence_get_page_children` | Get child pages |
+| `confluence_get_comments` | Get page comments |
+| `confluence_add_comment` | Add a comment to a page |
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+- **Authentication Failures**:
+  - For Cloud: Check your API tokens (not your account password)
+  - For Server/Data Center: Verify your personal access token is valid and not expired
+
+- **SSL Certificate Issues**: 
+  - If using Server/Data Center and encounter SSL errors, set `JIRA_SSL_VERIFY=false` or `CONFLUENCE_SSL_VERIFY=false`
+
+- **Permission Errors**: 
+  - Ensure your Atlassian account has sufficient permissions to access the spaces/projects
+
+- **Docker Image Not Found**:
+  - Make sure you're logged into Artifactory: `docker login docker-dev-artifactory.workday.com`
+
+### Enable Verbose Logging
+
+Add `-v` or `-vv` flag for more detailed logs:
+
+```json
+"args": [
+  "run", "--rm", "-i",
+  "-e", "JIRA_URL",
+  "-e", "JIRA_PERSONAL_TOKEN",
+  "docker-dev-artifactory.workday.com/docker-public-repos/workday-mcp-atlassian:latest",
+  "-v"
+]
+```
+
+## 🏗️ Building Locally
+
+For development or customization:
+
+```bash
+# Clone the repo
+git clone <this-repo>
+cd wd-mcp-atlassian
+
+# Build locally
+docker build -t mcp-atlassian:local .
+
+# Test locally
+docker run --rm mcp-atlassian:local --help
+```
+
+### Publishing to Artifactory
+
+```bash
+# Login
+docker login docker-dev-artifactory.workday.com
+
+# Tag
+docker tag mcp-atlassian:local docker-dev-artifactory.workday.com/docker-public-repos/workday-mcp-atlassian:latest
+docker tag mcp-atlassian:local docker-dev-artifactory.workday.com/docker-public-repos/workday-mcp-atlassian:X.Y.Z
+
+# Push
+docker push docker-dev-artifactory.workday.com/docker-public-repos/workday-mcp-atlassian:latest
+docker push docker-dev-artifactory.workday.com/docker-public-repos/workday-mcp-atlassian:X.Y.Z
+```
+
+## 🔒 Security
+
+- Never share API tokens or Personal Access Tokens
+- Keep .env files secure and private
+- Use `READ_ONLY_MODE=true` when write access is not needed
+- See [SECURITY.md](SECURITY.md) for best practices
+
+## 📄 License
+
+Licensed under MIT - see [LICENSE](LICENSE) file.
+
+---
+
+**Upstream**: This is a fork of [sooperset/mcp-atlassian](https://github.com/sooperset/mcp-atlassian)
