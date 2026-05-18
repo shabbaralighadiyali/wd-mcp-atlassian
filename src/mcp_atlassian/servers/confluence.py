@@ -101,8 +101,9 @@ async def search(
         x in query for x in ["=", "~", ">", "<", " AND ", " OR ", "currentUser()"]
     ):
         original_query = query
+        escaped_query = original_query.replace("\\", "\\\\").replace('"', '\\"')
         try:
-            query = f'siteSearch ~ "{original_query}"'
+            query = f'siteSearch ~ "{escaped_query}"'
             logger.info(
                 f"Converting simple search term to CQL using siteSearch: {query}"
             )
@@ -111,7 +112,7 @@ async def search(
             )
         except Exception as e:
             logger.warning(f"siteSearch failed ('{e}'), falling back to text search.")
-            query = f'text ~ "{original_query}"'
+            query = f'text ~ "{escaped_query}"'
             logger.info(f"Falling back to text search with CQL: {query}")
             pages = confluence_fetcher.search(
                 query, limit=limit, spaces_filter=spaces_filter
